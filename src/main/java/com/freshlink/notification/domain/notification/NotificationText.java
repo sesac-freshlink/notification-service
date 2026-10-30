@@ -12,6 +12,7 @@ import java.time.format.DateTimeFormatter;
 public record NotificationText(String title, String body, String link) {
 
     static final String OWNER_EXPIRING_PAGE = "/owner/expiring";
+    static final String OWNER_ORDERS_PAGE = "/owner/orders";
 
     private static final DateTimeFormatter WHEN = DateTimeFormatter.ofPattern("M월 d일 HH:mm");
 
@@ -28,11 +29,25 @@ public record NotificationText(String title, String body, String link) {
             case RESTOCKED -> new NotificationText("재입고 알림",
                     (named ? product + " 상품이" : "신청한 상품이") + " 다시 들어왔어요",
                     "/customer/stores/" + m.storeId() + "/products/" + m.productId());
+            case NEW_ORDER -> new NotificationText("새 픽업 주문",
+                    product + quantity(m) + " 주문이 들어왔어요" + orderNo(m),
+                    OWNER_ORDERS_PAGE);
+            case PICKUP_READY -> new NotificationText("픽업 준비 완료",
+                    store(m) + product + quantity(m) + " 준비가 끝났어요. 가게에서 받아 가세요",
+                    m.orderId() == null ? "/customer/orders" : "/customer/orders/" + m.orderId());
         };
     }
 
     private static String quantity(NotificationMessage m) {
         return m.quantity() == null ? "" : " " + m.quantity() + "개";
+    }
+
+    private static String orderNo(NotificationMessage m) {
+        return m.orderNo() == null || m.orderNo().isBlank() ? "" : " (" + m.orderNo() + ")";
+    }
+
+    private static String store(NotificationMessage m) {
+        return m.storeName() == null || m.storeName().isBlank() ? "" : m.storeName() + " ";
     }
 
     private static String when(OffsetDateTime t) {

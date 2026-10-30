@@ -94,9 +94,46 @@ class NotificationEventHandlerIntegrationTest {
     void userId가_있으면_그_고객_한_명에게만() {
         String user = UUID.randomUUID().toString();
         NotificationMessage m = new NotificationMessage(UUID.randomUUID().toString(), OffsetDateTime.now(),
-                NotificationKind.RESTOCKED, nextId(), user, 15L, "우유", null, null, 3);
+                NotificationKind.RESTOCKED, nextId(), user, 15L, "우유", null, null, 3, null, null, null);
 
         assertThat(handler.handle(m)).isEqualTo(1);
         assertThat(recipients(m.messageId())).containsExactly("USER:" + user);
+    }
+
+    @Test
+    void 새_픽업_주문은_그_점포_점주에게_주문_목록_링크로() {
+        long store = nextId();
+        NotificationMessage m = NotificationMessage.newOrder(store, 501L, "FL-20261030-0001", 15L, "매운 컵라면 115g", 2);
+
+        assertThat(handler.handle(m)).isEqualTo(1);
+
+        assertThat(recipients(m.messageId())).containsExactly("STORE:" + store);
+        var row = jdbc.queryForMap("SELECT title, body, link FROM notification WHERE source_message_id = ?", m.messageId());
+        assertThat(row.get("title")).isEqualTo("새 픽업 주문");
+        assertThat(row.get("body")).isEqualTo("매운 컵라면 115g 2개 주문이 들어왔어요 (FL-20261030-0001)");
+        assertThat(row.get("link")).isEqualTo("/owner/orders");
+    }
+
+    @Test
+    void 픽업_준비_완료는_주문한_고객에게_주문_상세_링크로() {
+        String customer = UUID.randomUUID().toString();
+        NotificationMessage m = NotificationMessage.pickupReady(nextId(), "역삼점", customer, 501L,
+                "FL-20261030-0001", 15L, "매운 컵라면 115g", 2);
+
+        assertThat(handler.handle(m)).isEqualTo(1);
+
+        assertThat(recipients(m.messageId())).containsExactly("USER:" + customer);
+        var row = jdbc.queryForMap("SELECT title, body, link FROM notification WHERE source_message_id = ?", m.messageId());
+        assertThat(row.get("title")).isEqualTo("픽업 준비 완료");
+        assertThat(row.get("body")).isEqualTo("역삼점 매운 컵라면 115g 2개 준비가 끝났어요. 가게에서 받아 가세요");
+        assertThat(row.get("link")).isEqualTo("/customer/orders/501");
+    }
+
+    @Test
+    void 픽업_준비_완료인데_고객이_없으면_만들지_않는다() {
+        NotificationMessage m = NotificationMessage.pickupReady(nextId(), "역삼점", null, 502L,
+                "FL-20261030-0002", 15L, "우유", 1);
+
+        assertThat(handler.handle(m)).isZero();
     }
 }

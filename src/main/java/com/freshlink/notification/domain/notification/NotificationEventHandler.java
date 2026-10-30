@@ -68,9 +68,14 @@ public class NotificationEventHandler {
             return List.of(Recipient.user(m.userId()));
         }
         return switch (m.kind()) {
-            case EXPIRY_IMMINENT, EXPIRED -> List.of(Recipient.store(m.storeId()));
+            case EXPIRY_IMMINENT, EXPIRED, NEW_ORDER -> List.of(Recipient.store(m.storeId()));
             case RESTOCKED -> restockSubscriptions.takeSubscribers(m.storeId(), m.productId()).stream()
                     .map(Recipient::user).toList();
+            case PICKUP_READY -> {
+                // 고객 알림인데 받는 사람이 없다: 보내는 쪽 실수라 만들지 않고 남긴다
+                log.warn("PICKUP_READY인데 userId가 없다 orderId={} messageId={}", m.orderId(), m.messageId());
+                yield List.of();
+            }
         };
     }
 }

@@ -27,7 +27,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.freshlink:common:0.6.0'                               // NOTIFICATION 쪽지, ErrorCode·BusinessException·ErrorResponse, 멱등 처리(ProcessedMessages)
+    implementation 'com.freshlink:common:0.7.0'                               // NOTIFICATION 쪽지, ErrorCode·BusinessException·ErrorResponse, 멱등 처리(ProcessedMessages)
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'        // REST API, SSE(SseEmitter)
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'      // MySQL 접근
     implementation 'org.springframework.boot:spring-boot-starter-validation'    // @Valid
