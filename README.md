@@ -36,7 +36,7 @@ sequenceDiagram
     UI->>UI: 종 숫자 +1, sonner 토스트
 ```
 
-- 쪽지 형식은 common `NotificationMessage`(v0.6.0)이고, 명세의 진실은 [.github 화면 알림 문서](https://github.com/sesac-freshlink/.github/blob/main/docs/기능이해/화면-알림.md)다.
+- 쪽지 형식은 common `NotificationMessage`(v0.7.0)이고, 명세의 진실은 [.github 화면 알림 문서](https://github.com/sesac-freshlink/.github/blob/main/docs/기능이해/화면-알림.md)다.
 - 보내는 쪽은 사실(종류·점포·상품·lot·유통기한·수량)만 싣는다. 문구와 받는 사람은 여기서 정한다(`NotificationText`, `NotificationEventHandler`).
 - 같은 쪽지(`messageId`)를 두 번 받아도 알림은 한 번만 생긴다(`processed_message`, common `ProcessedMessages`).
 
@@ -45,6 +45,8 @@ sequenceDiagram
 | `EXPIRY_IMMINENT` | 그 점포 점주 (`STORE:<storeId>`) | 유통기한 임박 / 매운 컵라면 115g 4개의 유통기한이 10월 31일 23:59에 끝나요 | `/owner/expiring` |
 | `EXPIRED` | 그 점포 점주 | 유통기한 경과 / 우유 2개의 유통기한이 지났어요. 폐기해 주세요 | `/owner/expiring` |
 | `RESTOCKED` | 그 점포·상품에 재입고 알림을 신청한 고객 전부 (`USER:<sub>`) | 재입고 알림 / 바나나우유 상품이 다시 들어왔어요 | `/customer/stores/{storeId}/products/{productId}` |
+| `NEW_ORDER` (order) | 그 점포 점주 | 새 픽업 주문 / 매운 컵라면 115g 2개 주문이 들어왔어요 (FL-20261030-0001) | `/owner/orders` |
+| `PICKUP_READY` (order) | 주문한 고객 (`userId`) | 픽업 준비 완료 / 역삼점 매운 컵라면 115g 2개 준비가 끝났어요. 가게에서 받아 가세요 | `/customer/orders/{orderId}` |
 
 재입고 알림은 한 번만 간다. 알림을 만들면서 그 신청을 지운다(다시 받으려면 다시 신청).
 
@@ -106,7 +108,7 @@ src/main/java/com/freshlink/notification/
 
 ## 6. dev 환경에서 실행하기
 
-> Boot 4.0.8, Gradle 9.x, Java 21. `com.freshlink:common` 0.6.0(NOTIFICATION 쪽지, 멱등 처리)과 Spring Cloud AWS SQS를 쓴다. 쪽지는 `app.queue.notifications`(= `${QUEUE_PREFIX}notification-events`)에서 받는다. 큐가 없으면 앱이 뜨지 않는다(`queue-not-found-strategy: fail`).
+> Boot 4.0.8, Gradle 9.x, Java 21. `com.freshlink:common` 0.7.0(NOTIFICATION 쪽지, 멱등 처리)과 Spring Cloud AWS SQS를 쓴다. 쪽지는 `app.queue.notifications`(= `${QUEUE_PREFIX}notification-events`)에서 받는다. 큐가 없으면 앱이 뜨지 않는다(`queue-not-found-strategy: fail`).
 >
 > **DB 없이 IntelliJ에서 띄우기:** Docker Desktop을 켜고 `src/test/java/com/freshlink/notification/TestNotificationServiceApplication`을 Run 한다. AWS 큐에 붙지 않고 띄우려면 실행 설정에 `--spring.cloud.aws.sqs.listener.auto-startup=false`를 준다.
 
