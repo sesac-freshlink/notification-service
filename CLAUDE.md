@@ -16,3 +16,5 @@
 ```
 
 검증: `./gradlew build`
+
+작업 방식: `.claude/skills/freshlink-pipeline/SKILL.md` 순서대로 Claude 하나가 직접 한다(크기 정하기 → 이해 → 계획 → 구현 → 검증 → 자체 리뷰 → 커밋·PR). 서브에이전트에게 일을 넘기지 않는다. 이 파일이 스킬보다 우선이다.
